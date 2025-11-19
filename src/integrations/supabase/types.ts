@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_time: string
+          created_at: string
+          distance_km: number
+          end_lat: number
+          end_lng: number
+          fare_amount: number
+          id: string
+          start_lat: number
+          start_lng: number
+          status: string
+          tier: string
+        }
+        Insert: {
+          booking_time?: string
+          created_at?: string
+          distance_km: number
+          end_lat: number
+          end_lng: number
+          fare_amount: number
+          id?: string
+          start_lat: number
+          start_lng: number
+          status?: string
+          tier: string
+        }
+        Update: {
+          booking_time?: string
+          created_at?: string
+          distance_km?: number
+          end_lat?: number
+          end_lng?: number
+          fare_amount?: number
+          id?: string
+          start_lat?: number
+          start_lng?: number
+          status?: string
+          tier?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
