@@ -103,16 +103,16 @@ export function MapInterface({
             onStartPointChange={onStartPointChange}
             onEndPointChange={onEndPointChange}
           />
-          {startPoint && <Marker position={startPoint} icon={startIcon} />}
-          {endPoint && endPoint[0] !== 0 && <Marker position={endPoint} icon={endIcon} />}
-          {startPoint && endPoint && endPoint[0] !== 0 && (
+          {startPoint ? <Marker position={startPoint} icon={startIcon} /> : null}
+          {endPoint && endPoint[0] !== 0 ? <Marker position={endPoint} icon={endIcon} /> : null}
+          {startPoint && endPoint && endPoint[0] !== 0 ? (
             <Polyline
               positions={[startPoint, endPoint]}
               color="#3b82f6"
               weight={3}
               dashArray="10, 10"
             />
-          )}
+          ) : null}
         </MapContainer>
       </div>
     </Card>
