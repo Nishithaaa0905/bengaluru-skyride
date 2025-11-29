@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapInterface } from "@/components/booking/MapInterface";
 import { TierSelection } from "@/components/booking/TierSelection";
@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import StopsList from "../components/booking/StopsList";
 
 export type LatLng = [number, number];
 export type TierType = "standard" | "premium";
@@ -15,6 +16,7 @@ const Booking = () => {
   const navigate = useNavigate();
   const [startPoint, setStartPoint] = useState<LatLng | null>(null);
   const [endPoint, setEndPoint] = useState<LatLng | null>(null);
+  const [stops, setStops] = useState<LatLng[]>([]);
   const [selectedTier, setSelectedTier] = useState<TierType | null>(null);
   const [distance, setDistance] = useState<number>(0);
   const [isBooking, setIsBooking] = useState(false);
@@ -33,27 +35,41 @@ const Booking = () => {
     return R * c;
   };
 
+  useEffect(() => {
+    if (startPoint && endPoint) {
+      let totalDist = 0;
+      let currentPoint = startPoint;
+      stops.forEach(stop => {
+        totalDist += calculateDistance(currentPoint, stop);
+        currentPoint = stop;
+      });
+      totalDist += calculateDistance(currentPoint, endPoint);
+      setDistance(totalDist);
+    }
+  }, [startPoint, endPoint, stops]);
+
   const handleStartPointChange = (point: LatLng) => {
     setStartPoint(point);
-    if (endPoint) {
-      const dist = calculateDistance(point, endPoint);
-      setDistance(dist);
-    }
   };
 
   const handleEndPointChange = (point: LatLng) => {
     setEndPoint(point);
-    if (startPoint) {
-      const dist = calculateDistance(startPoint, point);
-      setDistance(dist);
-    }
+  };
+
+  const handleAddStop = (point: LatLng) => {
+    setStops([...stops, point]);
+  };
+
+  const handleRemoveStop = (index: number) => {
+    setStops(stops.filter((_, i) => i !== index));
   };
 
   const calculateFare = (): number => {
     if (!selectedTier || distance === 0) return 0;
     const baseRatePerKm = selectedTier === "standard" ? 50 : 80;
     const fixedFee = 100;
-    return distance * baseRatePerKm + fixedFee;
+    const stopFee = stops.length * 25;
+    return distance * baseRatePerKm + fixedFee + stopFee;
   };
 
   const handleBooking = async () => {
@@ -72,6 +88,7 @@ const Booking = () => {
           start_lng: startPoint[1],
           end_lat: endPoint[0],
           end_lng: endPoint[1],
+          stops: stops,
           distance_km: distance,
           tier: selectedTier,
           fare_amount: fare,
@@ -117,8 +134,10 @@ const Booking = () => {
             <MapInterface
               startPoint={startPoint}
               endPoint={endPoint}
+              stops={stops}
               onStartPointChange={handleStartPointChange}
               onEndPointChange={handleEndPointChange}
+              onAddStop={handleAddStop}
             />
           </div>
 
@@ -130,6 +149,7 @@ const Booking = () => {
                   onTierSelect={setSelectedTier}
                   distance={distance}
                 />
+                <StopsList stops={stops} onRemoveStop={handleRemoveStop} />
                 <FareDisplay
                   distance={distance}
                   tier={selectedTier}
@@ -148,7 +168,7 @@ const Booking = () => {
             ) : (
               <div className="bg-card rounded-xl p-8 shadow-card text-center">
                 <p className="text-muted-foreground">
-                  Select your pickup and destination points on the map to view available tiers and pricing
+                  Select your pickup and destination points on the map to view available tiers and pricing. You can also add intermediate stops.
                 </p>
               </div>
             )}
