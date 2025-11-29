@@ -1,5 +1,8 @@
 # Welcome to your Lovable project
 
+## Team Members
+Nishitha Mahesh: 1MS23CS124
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/84d2b761-00ba-45a0-a752-435739606a95
