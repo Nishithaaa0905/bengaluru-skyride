@@ -1,7 +1,8 @@
 # Welcome to your Lovable project
 
-## Team Members
+## Team Members:
 Nishitha Mahesh: 1MS23CS124
+Roshani T S Udupa - 1MS23CS155
 
 ## Project info
 
