@@ -22,8 +22,10 @@ type LatLng = [number, number];
 interface MapInterfaceProps {
   startPoint: LatLng | null;
   endPoint: LatLng | null;
+  stops: LatLng[];
   onStartPointChange: (point: LatLng) => void;
   onEndPointChange: (point: LatLng) => void;
+  onAddStop: (point: LatLng) => void;
 }
 
 const startIcon = new Icon({
@@ -40,12 +42,27 @@ const endIcon = new Icon({
   shadowUrl: markerShadow,
 });
 
+const stopIcon = new Icon({
+  iconUrl: markerIcon,
+  iconSize: [20, 34],
+  iconAnchor: [10, 34],
+  shadowUrl: markerShadow,
+  className: "hue-rotate-90",
+});
+
 function MapClickHandler({
   startPoint,
   endPoint,
   onStartPointChange,
   onEndPointChange,
-}: MapInterfaceProps) {
+  onAddStop,
+}: {
+  startPoint: LatLng | null;
+  endPoint: LatLng | null;
+  onStartPointChange: (point: LatLng) => void;
+  onEndPointChange: (point: LatLng) => void;
+  onAddStop: (point: LatLng) => void;
+}) {
   useMapEvents({
     click: (e) => {
       const point: LatLng = [e.latlng.lat, e.latlng.lng];
@@ -54,9 +71,7 @@ function MapClickHandler({
       } else if (!endPoint) {
         onEndPointChange(point);
       } else {
-        // Reset and start over
-        onStartPointChange(point);
-        onEndPointChange([0, 0]);
+        onAddStop(point);
       }
     },
   });
@@ -66,11 +81,17 @@ function MapClickHandler({
 export function MapInterface({
   startPoint,
   endPoint,
+  stops,
   onStartPointChange,
   onEndPointChange,
+  onAddStop,
 }: MapInterfaceProps) {
   // Bengaluru coordinates
   const defaultCenter: LatLngExpression = [12.9716, 77.5946];
+
+  const routePoints = [startPoint, ...stops, endPoint].filter(
+    (p): p is LatLng => p !== null && p[0] !== 0
+  );
 
   return (
     <Card className="overflow-hidden shadow-card">
@@ -80,7 +101,12 @@ export function MapInterface({
           <div>
             <h3 className="font-semibold">Select Your Route</h3>
             <p className="text-sm opacity-90">
-              Click to set {!startPoint ? "pickup" : !endPoint ? "destination" : "new route"}
+              Click to set{" "}
+              {!startPoint
+                ? "pickup"
+                : !endPoint
+                ? "destination"
+                : "an intermediate stop"}
             </p>
           </div>
         </div>
@@ -102,12 +128,18 @@ export function MapInterface({
             endPoint={endPoint}
             onStartPointChange={onStartPointChange}
             onEndPointChange={onEndPointChange}
+            onAddStop={onAddStop}
           />
           {startPoint ? <Marker position={startPoint} icon={startIcon} /> : null}
-          {endPoint && endPoint[0] !== 0 ? <Marker position={endPoint} icon={endIcon} /> : null}
-          {startPoint && endPoint && endPoint[0] !== 0 ? (
+          {endPoint && endPoint[0] !== 0 ? (
+            <Marker position={endPoint} icon={endIcon} />
+          ) : null}
+          {stops.map((stop, index) => (
+            <Marker key={index} position={stop} icon={stopIcon} />
+          ))}
+          {routePoints.length > 1 ? (
             <Polyline
-              positions={[startPoint, endPoint]}
+              positions={routePoints}
               color="#3b82f6"
               weight={3}
               dashArray="10, 10"
